@@ -1,3 +1,11 @@
+import { bootstrap as globalAgentBootstrap } from 'global-agent';
+
+// Initialize global proxy agent
+if (process.env.HTTPS_PROXY || process.env.HTTP_PROXY) {
+  globalAgentBootstrap();
+  console.log('Global proxy agent initialized');
+}
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
