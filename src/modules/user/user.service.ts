@@ -10,7 +10,7 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async findByTelegramId(telegramUserId: number): Promise<User> {
+  async findByTelegramId(telegramUserId: number): Promise<User | null> {
     return this.userRepository.findOne({
       where: { telegramUserId },
       relations: ['defaultMethod'],
@@ -40,17 +40,28 @@ export class UserService {
 
   async updateSettings(userId: number, settings: Partial<User['settings']>): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
     user.settings = { ...user.settings, ...settings };
     return this.userRepository.save(user);
   }
 
   async setDefaultMethod(userId: number, methodId: number): Promise<User> {
     await this.userRepository.update(userId, { defaultMethodId: methodId });
-    return this.userRepository.findOne({ where: { id: userId }, relations: ['defaultMethod'] });
+    const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['defaultMethod'] });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
   }
 
   async updateTimezone(userId: number, timezone: string): Promise<User> {
     await this.userRepository.update(userId, { timezone });
-    return this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return user;
   }
 }

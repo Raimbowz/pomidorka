@@ -93,7 +93,7 @@ export class MethodService implements OnModuleInit {
     });
   }
 
-  async findById(id: number): Promise<Method> {
+  async findById(id: number): Promise<Method | null> {
     return this.methodRepository.findOne({ where: { id } });
   }
 
@@ -128,7 +128,11 @@ export class MethodService implements OnModuleInit {
 
   async update(id: number, updates: Partial<CreateMethodDto>): Promise<Method> {
     await this.methodRepository.update(id, updates);
-    return this.findById(id);
+    const method = await this.findById(id);
+    if (!method) {
+      throw new Error('Method not found');
+    }
+    return method;
   }
 
   async delete(id: number): Promise<void> {

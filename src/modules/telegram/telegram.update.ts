@@ -27,6 +27,7 @@ export class TelegramUpdate {
 
   @Start()
   async start(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     let user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -53,12 +54,12 @@ export class TelegramUpdate {
           '/methods - выбрать другую методику\n' +
           '/settings - настройки\n' +
           '/help - справка',
-        this.getMainKeyboard(),
+        { reply_markup: this.getMainKeyboard() },
       );
     } else {
       await ctx.reply(
         'С возвращением! Готов к новой сессии фокусировки?',
-        this.getMainKeyboard(),
+        { reply_markup: this.getMainKeyboard() },
       );
     }
   }
@@ -82,6 +83,7 @@ export class TelegramUpdate {
   @Command('start_session')
   @Hears('🚀 Старт')
   async startSession(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -117,6 +119,7 @@ export class TelegramUpdate {
   @Command('pause')
   @Hears('⏸ Пауза')
   async pauseSession(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -144,6 +147,7 @@ export class TelegramUpdate {
   @Command('resume')
   @Hears('▶️ Возобновить')
   async resumeSession(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -167,6 +171,7 @@ export class TelegramUpdate {
   @Command('stop')
   @Hears('⏹ Стоп')
   async stopSession(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -193,6 +198,7 @@ export class TelegramUpdate {
   @Command('stats')
   @Hears('📊 Статистика')
   async stats(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -215,6 +221,7 @@ export class TelegramUpdate {
   @Command('methods')
   @Hears('📋 Методики')
   async methods(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 
@@ -240,6 +247,7 @@ export class TelegramUpdate {
   @Command('settings')
   @Hears('⚙️ Настройки')
   async settings(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const telegramUserId = ctx.from.id;
     const user = await this.userService.findByTelegramId(telegramUserId);
 

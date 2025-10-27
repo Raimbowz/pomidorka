@@ -35,7 +35,7 @@ import typeormConfig from './config/typeorm.config';
     TelegrafModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        token: configService.get('TELEGRAM_BOT_TOKEN'),
+        token: configService.get('TELEGRAM_BOT_TOKEN') || 'dummy-token',
       }),
       inject: [ConfigService],
     }),

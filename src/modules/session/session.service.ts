@@ -57,10 +57,14 @@ export class SessionService {
       workDuration: method.workDuration,
     });
 
-    return this.sessionRepository.findOne({
+    const createdSession = await this.sessionRepository.findOne({
       where: { id: savedSession.id },
       relations: ['method'],
     });
+    if (!createdSession) {
+      throw new Error('Session not found after creation');
+    }
+    return createdSession;
   }
 
   async pauseSession(sessionId: number): Promise<Session> {
@@ -87,10 +91,14 @@ export class SessionService {
       previousState: session.state,
     });
 
-    return this.sessionRepository.findOne({
+    const pausedSession = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['method'],
     });
+    if (!pausedSession) {
+      throw new Error('Session not found after pause');
+    }
+    return pausedSession;
   }
 
   async resumeSession(sessionId: number): Promise<Session> {
@@ -124,10 +132,14 @@ export class SessionService {
       timeLeftSecs: session.timeLeftSecs,
     });
 
-    return this.sessionRepository.findOne({
+    const resumedSession = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['method'],
     });
+    if (!resumedSession) {
+      throw new Error('Session not found after resume');
+    }
+    return resumedSession;
   }
 
   async stopSession(sessionId: number): Promise<Session> {
@@ -151,10 +163,14 @@ export class SessionService {
       cyclesCompleted: session.currentCycleIndex,
     });
 
-    return this.sessionRepository.findOne({
+    const stoppedSession = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['method'],
     });
+    if (!stoppedSession) {
+      throw new Error('Session not found after stop');
+    }
+    return stoppedSession;
   }
 
   async completeSession(sessionId: number): Promise<Session> {
@@ -167,6 +183,9 @@ export class SessionService {
       where: { id: sessionId },
       relations: ['method'],
     });
+    if (!session) {
+      throw new Error('Session not found');
+    }
 
     await this.addEvent(sessionId, SessionEventType.COMPLETE, {
       totalFocusTime: session.totalFocusTimeSecs,
@@ -187,6 +206,9 @@ export class SessionService {
     const phaseEndAt = new Date(now.getTime() + duration * 60 * 1000);
 
     const session = await this.sessionRepository.findOne({ where: { id: sessionId } });
+    if (!session) {
+      throw new Error('Session not found');
+    }
 
     const updates: any = {
       state: newState,
@@ -211,14 +233,21 @@ export class SessionService {
       cycleIndex: session.currentCycleIndex + cycleIncrement,
     });
 
-    return this.sessionRepository.findOne({
+    const updatedSession = await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['method'],
     });
+    if (!updatedSession) {
+      throw new Error('Session not found after update');
+    }
+    return updatedSession;
   }
 
   async updateSessionTime(sessionId: number, focusTimeSecs: number, breakTimeSecs: number) {
     const session = await this.sessionRepository.findOne({ where: { id: sessionId } });
+    if (!session) {
+      throw new Error('Session not found');
+    }
     await this.sessionRepository.update(sessionId, {
       totalFocusTimeSecs: session.totalFocusTimeSecs + focusTimeSecs,
       totalBreakTimeSecs: session.totalBreakTimeSecs + breakTimeSecs,

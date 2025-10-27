@@ -10,7 +10,6 @@ interface SessionContext extends Context {
   session?: any;
 }
 
-@Action(/stats_(.+)/)
 export class TelegramActions {
   constructor(
     @InjectBot() private bot: Telegraf<SessionContext>,
@@ -22,6 +21,7 @@ export class TelegramActions {
 
   @Action(/stats_(.+)/)
   async handleStats(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const callbackQuery: any = ctx.callbackQuery;
     const action = callbackQuery.data;
     const period = action.split('_')[1];
@@ -61,6 +61,7 @@ export class TelegramActions {
 
   @Action(/method_(.+)/)
   async handleMethodSelect(@Ctx() ctx: SessionContext) {
+    if (!ctx.from) return;
     const callbackQuery: any = ctx.callbackQuery;
     const action = callbackQuery.data;
     const methodId = parseInt(action.split('_')[1]);

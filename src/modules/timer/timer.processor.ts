@@ -64,7 +64,9 @@ export class TimerProcessor extends WorkerHost {
       await this.notificationService.sendBreakStart(chatId, duration, isLongBreak);
 
       const updatedSession = await this.sessionService.getActiveSession(userId);
-      await this.timerService.startBreakPhase(updatedSession, method, isLongBreak);
+      if (updatedSession) {
+        await this.timerService.startBreakPhase(updatedSession, method, isLongBreak);
+      }
     } else {
       // Break ended, start work or complete
       const updatedSession = await this.sessionService.getActiveSession(userId);
@@ -74,7 +76,9 @@ export class TimerProcessor extends WorkerHost {
         await this.notificationService.sendWorkStart(chatId, method.workDuration);
 
         const workSession = await this.sessionService.getActiveSession(userId);
-        await this.timerService.startWorkPhase(workSession, method);
+        if (workSession) {
+          await this.timerService.startWorkPhase(workSession, method);
+        }
       } else {
         // Complete the session
         const completedSession = await this.sessionService.completeSession(sessionId);

@@ -9,14 +9,18 @@ export class NotificationService {
 
   async sendWorkStart(chatId: number, duration: number) {
     const message = `🚀 Сессия запущена: ${duration} минут работы.\n\nСконцентрируйтесь на задаче!`;
-    await this.bot.telegram.sendMessage(chatId, message, this.getSessionKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getSessionKeyboard(),
+    });
   }
 
   async sendBreakStart(chatId: number, duration: number, isLong: boolean = false) {
     const type = isLong ? 'Длинный перерыв' : 'Короткий перерыв';
     const emoji = isLong ? '🌟' : '☕';
     const message = `${emoji} ${type}: ${duration} минут.\n\nОтдохните и восстановите силы!`;
-    await this.bot.telegram.sendMessage(chatId, message, this.getBreakKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getBreakKeyboard(),
+    });
   }
 
   async sendWarning(chatId: number, minutesLeft: number, phase: string) {
@@ -27,17 +31,23 @@ export class NotificationService {
 
   async sendPaused(chatId: number, timeLeftMinutes: number) {
     const message = `⏸ Пауза. Осталось ${timeLeftMinutes} минут.`;
-    await this.bot.telegram.sendMessage(chatId, message, this.getPausedKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getPausedKeyboard(),
+    });
   }
 
   async sendResumed(chatId: number) {
     const message = `▶️ Сессия возобновлена!`;
-    await this.bot.telegram.sendMessage(chatId, message, this.getSessionKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getSessionKeyboard(),
+    });
   }
 
   async sendStopped(chatId: number) {
     const message = `⏹ Сессия прервана.`;
-    await this.bot.telegram.sendMessage(chatId, message, this.getMainKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getMainKeyboard(),
+    });
   }
 
   async sendCompleted(
@@ -63,7 +73,9 @@ export class NotificationService {
       `• Время отдыха: ${breakText}\n\n` +
       `Молодец! Продолжай в том же духе! 💪`;
 
-    await this.bot.telegram.sendMessage(chatId, message, this.getMainKeyboard());
+    await this.bot.telegram.sendMessage(chatId, message, {
+      reply_markup: this.getMainKeyboard(),
+    });
   }
 
   async sendStats(chatId: number, title: string, stats: any) {
