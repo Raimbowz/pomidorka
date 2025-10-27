@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: focusbot_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: focusbot
+      POSTGRES_PASSWORD: focusbot_password
+      POSTGRES_DB: focusbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - focusbot_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: focusbot_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - focusbot_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  focusbot_network:
+    driver: bridge
