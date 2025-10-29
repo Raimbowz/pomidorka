@@ -68,16 +68,24 @@ export class TelegramUpdate {
   async help(@Ctx() ctx: SessionContext) {
     const helpText =
       '📖 Справка по командам:\n\n' +
+      '*Фокус-сессии:*\n' +
       '/start_session - начать новую сессию\n' +
       '/pause - поставить сессию на паузу\n' +
       '/resume - возобновить сессию\n' +
       '/stop - остановить сессию\n' +
       '/stats - показать статистику\n' +
-      '/methods - выбрать методику работы\n' +
+      '/methods - выбрать методику работы\n\n' +
+      '*Напоминания:*\n' +
+      '/reminders - список напоминаний\n' +
+      '/add_reminder - создать напоминание\n' +
+      '/toggle_reminder <ID> - вкл/выкл напоминание\n' +
+      '/delete_reminder <ID> - удалить\n' +
+      '/reminder_stats - статистика напоминаний\n\n' +
+      '*Другое:*\n' +
       '/settings - настройки бота\n\n' +
       'Также можно использовать кнопки в меню.';
 
-    await ctx.reply(helpText);
+    await ctx.reply(helpText, { parse_mode: 'Markdown' });
   }
 
   @Command('start_session')

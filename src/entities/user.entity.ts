@@ -11,6 +11,7 @@ import {
 import { Method } from './method.entity';
 import { Session } from './session.entity';
 import { Statistic } from './statistic.entity';
+import { Reminder } from './reminder.entity';
 
 @Entity('users')
 export class User {
@@ -47,6 +48,9 @@ export class User {
 
   @OneToMany(() => Statistic, (statistic) => statistic.user)
   statistics: Statistic[];
+
+  @OneToMany(() => Reminder, (reminder) => reminder.user)
+  reminders: Reminder[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

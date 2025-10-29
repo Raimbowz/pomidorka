@@ -11,6 +11,7 @@ import { StatsModule } from './modules/stats/stats.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { TimerModule } from './modules/timer/timer.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { ReminderModule } from './modules/reminder/reminder.module';
 import typeormConfig from './config/typeorm.config';
 
 @Module({
@@ -39,7 +40,18 @@ import typeormConfig from './config/typeorm.config';
         const token = configService.get('TELEGRAM_BOT_TOKEN') || 'dummy-token';
         const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
 
-        const options: any = { token };
+        const options: any = {
+          token,
+          middlewares: [
+            // Добавляем простую session middleware
+            (ctx: any, next: any) => {
+              if (!ctx.session) {
+                ctx.session = {};
+              }
+              return next();
+            },
+          ],
+        };
 
         if (proxyUrl) {
           console.log(`Configuring Telegram bot with proxy: ${proxyUrl}`);
@@ -62,6 +74,7 @@ import typeormConfig from './config/typeorm.config';
     TelegramModule,
     TimerModule,
     NotificationModule,
+    ReminderModule,
   ],
 })
 export class AppModule {}
