@@ -5,6 +5,7 @@ import { Reminder } from '../../entities/reminder.entity';
 import { ReminderLog } from '../../entities/reminder-log.entity';
 import { ReminderService } from './reminder.service';
 import { ReminderProcessor } from './reminder.processor';
+import { ReminderController } from './reminder.controller';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ReminderProcessor } from './reminder.processor';
       name: 'reminders',
     }),
   ],
+  controllers: [ReminderController],
   providers: [ReminderService, ReminderProcessor],
   exports: [ReminderService],
 })
