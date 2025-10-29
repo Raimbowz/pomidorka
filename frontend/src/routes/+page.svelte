@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { reminderAPI } from '$lib/api';
-	import { formatTime, formatDays, cn } from '$lib/utils';
+	import { formatTime, formatDays, formatInterval, cn } from '$lib/utils';
 	import type { Reminder, CreateReminderDto } from '$lib/types';
+	import { ReminderType } from '$lib/types';
 	import { Bell, Plus, Trash2, Power } from 'lucide-svelte';
 
 	// Временный userId для демо (в реальном приложении из авторизации)
@@ -16,8 +17,10 @@
 	let formData = $state<CreateReminderDto>({
 		title: '',
 		description: '',
+		reminderType: ReminderType.SCHEDULE,
 		time: '09:00',
 		days: [],
+		intervalMinutes: 60,
 		requireConfirmation: true
 	});
 
@@ -37,9 +40,21 @@
 	}
 
 	async function handleSubmit() {
-		if (!formData.title || formData.days.length === 0) {
-			alert('Заполните обязательные поля');
+		if (!formData.title) {
+			alert('Введите название напоминания');
 			return;
+		}
+
+		if (formData.reminderType === ReminderType.SCHEDULE) {
+			if (!formData.days || formData.days.length === 0) {
+				alert('Выберите хотя бы один день недели');
+				return;
+			}
+		} else if (formData.reminderType === ReminderType.INTERVAL) {
+			if (!formData.intervalMinutes || formData.intervalMinutes <= 0) {
+				alert('Укажите интервал в минутах');
+				return;
+			}
 		}
 
 		loading = true;
@@ -60,13 +75,16 @@
 		formData = {
 			title: '',
 			description: '',
+			reminderType: ReminderType.SCHEDULE,
 			time: '09:00',
 			days: [],
+			intervalMinutes: 60,
 			requireConfirmation: true
 		};
 	}
 
 	function toggleDay(day: number) {
+		if (!formData.days) formData.days = [];
 		if (formData.days.includes(day)) {
 			formData.days = formData.days.filter((d) => d !== day);
 		} else {
@@ -148,34 +166,81 @@
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium mb-1">Время *</label>
-						<input
-							type="time"
-							bind:value={formData.time}
-							class="w-full px-3 py-2 border border-input rounded-md bg-background"
-							required
-						/>
-					</div>
-
-					<div>
-						<label class="block text-sm font-medium mb-2">Дни недели *</label>
-						<div class="flex gap-2 flex-wrap">
-							{#each dayNames as day, index}
-								<button
-									type="button"
-									onclick={() => toggleDay(index)}
-									class={cn(
-										'px-4 py-2 rounded-lg border transition',
-										formData.days.includes(index)
-											? 'bg-primary text-primary-foreground border-primary'
-											: 'bg-background border-input hover:border-primary'
-									)}
-								>
-									{day}
-								</button>
-							{/each}
+						<label class="block text-sm font-medium mb-2">Тип напоминания *</label>
+						<div class="flex gap-2">
+							<button
+								type="button"
+								onclick={() => formData.reminderType = ReminderType.SCHEDULE}
+								class={cn(
+									'flex-1 px-4 py-2 rounded-lg border transition',
+									formData.reminderType === ReminderType.SCHEDULE
+										? 'bg-primary text-primary-foreground border-primary'
+										: 'bg-background border-input hover:border-primary'
+								)}
+							>
+								По расписанию
+							</button>
+							<button
+								type="button"
+								onclick={() => formData.reminderType = ReminderType.INTERVAL}
+								class={cn(
+									'flex-1 px-4 py-2 rounded-lg border transition',
+									formData.reminderType === ReminderType.INTERVAL
+										? 'bg-primary text-primary-foreground border-primary'
+										: 'bg-background border-input hover:border-primary'
+								)}
+							>
+								По интервалу
+							</button>
 						</div>
 					</div>
+
+					{#if formData.reminderType === ReminderType.SCHEDULE}
+						<div>
+							<label class="block text-sm font-medium mb-1">Время *</label>
+							<input
+								type="time"
+								bind:value={formData.time}
+								class="w-full px-3 py-2 border border-input rounded-md bg-background"
+								required
+							/>
+						</div>
+
+						<div>
+							<label class="block text-sm font-medium mb-2">Дни недели *</label>
+							<div class="flex gap-2 flex-wrap">
+								{#each dayNames as day, index}
+									<button
+										type="button"
+										onclick={() => toggleDay(index)}
+										class={cn(
+											'px-4 py-2 rounded-lg border transition',
+											formData.days && formData.days.includes(index)
+												? 'bg-primary text-primary-foreground border-primary'
+												: 'bg-background border-input hover:border-primary'
+										)}
+									>
+										{day}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{:else}
+						<div>
+							<label class="block text-sm font-medium mb-1">Интервал (в минутах) *</label>
+							<input
+								type="number"
+								bind:value={formData.intervalMinutes}
+								min="1"
+								placeholder="Например: 60"
+								class="w-full px-3 py-2 border border-input rounded-md bg-background"
+								required
+							/>
+							<p class="text-xs text-muted-foreground mt-1">
+								Укажите через сколько минут повторять напоминание
+							</p>
+						</div>
+					{/if}
 
 					<div class="flex items-center gap-2">
 						<input
@@ -234,22 +299,32 @@
 											Неактивно
 										</span>
 									{/if}
+									<span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded">
+										{reminder.reminderType === ReminderType.SCHEDULE ? 'Расписание' : 'Интервал'}
+									</span>
 								</div>
 
 								{#if reminder.description}
 									<p class="text-sm text-muted-foreground mb-2">{reminder.description}</p>
 								{/if}
 
-								<div class="flex items-center gap-4 text-sm">
-									<span class="flex items-center gap-1">
-										<span class="font-medium">Время:</span>
-										{formatTime(reminder.time)}
-									</span>
-									<span class="flex items-center gap-1">
-										<span class="font-medium">Дни:</span>
-										{formatDays(reminder.days)}
-									</span>
-								</div>
+								{#if reminder.reminderType === ReminderType.SCHEDULE}
+									<div class="flex items-center gap-4 text-sm">
+										<span class="flex items-center gap-1">
+											<span class="font-medium">Время:</span>
+											{formatTime(reminder.time)}
+										</span>
+										<span class="flex items-center gap-1">
+											<span class="font-medium">Дни:</span>
+											{formatDays(reminder.days)}
+										</span>
+									</div>
+								{:else}
+									<div class="text-sm">
+										<span class="font-medium">Интервал:</span>
+										{formatInterval(reminder.intervalMinutes)}
+									</div>
+								{/if}
 
 								<div class="text-xs text-muted-foreground mt-1">
 									{reminder.requireConfirmation ? '✓' : '○'} С подтверждением

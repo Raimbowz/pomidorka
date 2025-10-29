@@ -1,10 +1,19 @@
+export enum ReminderType {
+	SCHEDULE = 'schedule',
+	INTERVAL = 'interval'
+}
+
 export interface Reminder {
 	id: number;
 	userId: number;
 	title: string;
 	description?: string;
-	time: string; // HH:mm
-	days: number[]; // 0-6 (Sunday-Saturday)
+	reminderType: ReminderType;
+	// Для SCHEDULE типа:
+	time?: string | null; // HH:mm
+	days?: number[] | null; // 0-6 (Sunday-Saturday)
+	// Для INTERVAL типа:
+	intervalMinutes?: number | null;
 	requireConfirmation: boolean;
 	isActive: boolean;
 	nextScheduledAt?: string;
@@ -15,16 +24,22 @@ export interface Reminder {
 export interface CreateReminderDto {
 	title: string;
 	description?: string;
-	time: string;
-	days: number[];
+	reminderType?: ReminderType;
+	// Для SCHEDULE типа:
+	time?: string;
+	days?: number[];
+	// Для INTERVAL типа:
+	intervalMinutes?: number;
 	requireConfirmation?: boolean;
 }
 
 export interface UpdateReminderDto {
 	title?: string;
 	description?: string;
+	reminderType?: ReminderType;
 	time?: string;
 	days?: number[];
+	intervalMinutes?: number;
 	requireConfirmation?: boolean;
 	isActive?: boolean;
 }

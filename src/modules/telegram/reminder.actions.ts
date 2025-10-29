@@ -343,7 +343,8 @@ export class ReminderActions {
     ]).reply_markup;
   }
 
-  private formatDays(days: number[]): string {
+  private formatDays(days: number[] | null): string {
+    if (!days || days.length === 0) return '—';
     if (days.length === 7) return 'Каждый день';
     if (days.length === 5 && !days.includes(0) && !days.includes(6)) {
       return 'Будни';

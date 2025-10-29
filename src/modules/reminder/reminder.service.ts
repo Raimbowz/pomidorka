@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { Reminder } from '../../entities/reminder.entity';
+import { Reminder, ReminderType } from '../../entities/reminder.entity';
 import { ReminderLog, ReminderLogStatus } from '../../entities/reminder-log.entity';
 import { DateTime } from 'luxon';
 
@@ -11,16 +11,22 @@ export interface CreateReminderDto {
   userId: number;
   title: string;
   description?: string;
-  time: string; // HH:mm
-  days: number[]; // [0-6]
+  reminderType?: ReminderType; // По умолчанию SCHEDULE
+  // Для SCHEDULE типа:
+  time?: string; // HH:mm
+  days?: number[]; // [0-6]
+  // Для INTERVAL типа:
+  intervalMinutes?: number; // Интервал в минутах
   requireConfirmation?: boolean;
 }
 
 export interface UpdateReminderDto {
   title?: string;
   description?: string;
+  reminderType?: ReminderType;
   time?: string;
   days?: number[];
+  intervalMinutes?: number;
   requireConfirmation?: boolean;
   isActive?: boolean;
 }
@@ -46,8 +52,10 @@ export class ReminderService implements OnModuleInit {
       userId: dto.userId,
       title: dto.title,
       description: dto.description,
-      time: dto.time,
-      days: dto.days,
+      reminderType: dto.reminderType ?? ReminderType.SCHEDULE,
+      time: dto.time ?? null,
+      days: dto.days ?? null,
+      intervalMinutes: dto.intervalMinutes ?? null,
       requireConfirmation: dto.requireConfirmation ?? true,
       isActive: true,
     });
@@ -113,7 +121,21 @@ export class ReminderService implements OnModuleInit {
   }
 
   private async scheduleReminder(reminder: Reminder): Promise<void> {
-    const nextSchedule = this.calculateNextSchedule(reminder.time, reminder.days);
+    let nextSchedule: DateTime | null = null;
+
+    // Рассчитываем следующее время в зависимости от типа напоминания
+    if (reminder.reminderType === ReminderType.SCHEDULE) {
+      // Для расписания используем время и дни недели
+      if (reminder.time && reminder.days && reminder.days.length > 0) {
+        nextSchedule = this.calculateNextSchedule(reminder.time, reminder.days);
+      }
+    } else if (reminder.reminderType === ReminderType.INTERVAL) {
+      // Для интервала добавляем N минут к текущему времени
+      if (reminder.intervalMinutes && reminder.intervalMinutes > 0) {
+        nextSchedule = DateTime.now().plus({ minutes: reminder.intervalMinutes });
+      }
+    }
+
     if (!nextSchedule) return;
 
     reminder.nextScheduledAt = nextSchedule.toJSDate();

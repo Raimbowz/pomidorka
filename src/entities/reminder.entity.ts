@@ -11,6 +11,11 @@ import {
 import { User } from './user.entity';
 import { ReminderLog } from './reminder-log.entity';
 
+export enum ReminderType {
+  SCHEDULE = 'schedule', // Фиксированное время + дни недели
+  INTERVAL = 'interval', // Каждые N минут
+}
+
 @Entity('reminders')
 export class Reminder {
   @PrimaryGeneratedColumn()
@@ -29,13 +34,28 @@ export class Reminder {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  // Время в формате HH:mm
-  @Column({ length: 5 })
-  time: string;
+  // Тип напоминания: расписание или интервал
+  @Column({
+    type: 'enum',
+    enum: ReminderType,
+    default: ReminderType.SCHEDULE,
+    name: 'reminder_type',
+  })
+  reminderType: ReminderType;
 
-  // Дни недели: [0-6] где 0 = Воскресенье, 1 = Понедельник, и т.д.
-  @Column({ type: 'json' })
-  days: number[];
+  // === Поля для SCHEDULE типа ===
+  // Время в формате HH:mm (для schedule)
+  @Column({ length: 5, nullable: true })
+  time: string | null;
+
+  // Дни недели: [0-6] где 0 = Воскресенье, 1 = Понедельник, и т.д. (для schedule)
+  @Column({ type: 'json', nullable: true })
+  days: number[] | null;
+
+  // === Поля для INTERVAL типа ===
+  // Интервал в минутах (для interval)
+  @Column({ nullable: true, name: 'interval_minutes' })
+  intervalMinutes: number | null;
 
   // Требуется ли подтверждение выполнения
   @Column({ default: true, name: 'require_confirmation' })
@@ -47,7 +67,7 @@ export class Reminder {
 
   // Следующее запланированное время отправки
   @Column({ type: 'timestamp', nullable: true, name: 'next_scheduled_at' })
-  nextScheduledAt: Date;
+  nextScheduledAt: Date | null;
 
   @OneToMany(() => ReminderLog, (log) => log.reminder)
   logs: ReminderLog[];
